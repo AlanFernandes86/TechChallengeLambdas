@@ -46,7 +46,7 @@ public class Function
                     Body = JsonSerializer.Serialize(new AuthResponse
                     {
                         Token = string.Empty,
-                        Message = "Internal Server Error",
+                        Message = "Internal Server Error - No Secrets Configured",
                         IsAuthenticated = false
                     })
                 };
@@ -60,12 +60,12 @@ public class Function
                 return new APIGatewayProxyResponse
                 {
                     StatusCode = 401,
-                    Body = JsonSerializer.Serialize(JsonSerializer.Serialize(new AuthResponse
+                    Body = JsonSerializer.Serialize(new AuthResponse
                     {
                         Token = string.Empty,
                         Message = "Invalid username or password.",
                         IsAuthenticated = false
-                    }))
+                    })
                 };
             }
 
@@ -90,7 +90,7 @@ public class Function
                 Body = JsonSerializer.Serialize(new AuthResponse
                 {
                     Token = string.Empty,
-                    Message = "Internal Server Error",
+                    Message = $"Internal Server Error - {ex.Message}",
                     IsAuthenticated = false
                 })
             };
