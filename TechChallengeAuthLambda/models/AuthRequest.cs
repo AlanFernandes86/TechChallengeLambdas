@@ -8,5 +8,5 @@ public class AuthRequest
     public string Username { get; set; }
 
     [JsonPropertyName("password")]
-    public string Password { get; set; }
+    public string? Password { get; set; }
 }

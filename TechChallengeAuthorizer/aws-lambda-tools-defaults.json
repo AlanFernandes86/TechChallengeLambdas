@@ -10,17 +10,7 @@
   "configuration": "Release",
   "function-architecture": "x86_64",
   "function-runtime": "dotnet8",
-  "function-memory-size": 256,
-  "function-timeout": 15,
-  "function-handler": "TechChallengeAuthenticate::TechChallengeAuthenticate.Function::FunctionHandler",
-  "framework": "net8.0",
-  "function-name": "test-function",
-  "function-description": "",
-  "package-type": "Zip",
-  "function-role": "arn:aws:iam::307946673786:role/service-role/test-function-role-2w4sbwqd",
-  "function-subnets": "",
-  "function-security-groups": "",
-  "tracing-mode": "PassThrough",
-  "environment-variables": "",
-  "image-tag": ""
+  "function-memory-size": 512,
+  "function-timeout": 30,
+  "function-handler": "TechChallengeAuthorizer::TechChallengeAuthorizer.Function::FunctionHandler"
 }

@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TechChallengeAuthLambda", "TechChallengeAuthLambda/TechChallengeAuthLambda.csproj", "{6B7E51AF-6248-41D6-BA39-16E7B6FDFA62}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TechChallengeAuthenticate", "TechChallengeAuthLambda\TechChallengeAuthenticate.csproj", "{6B7E51AF-6248-41D6-BA39-16E7B6FDFA62}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TechChallengeAuthorizer", "TechChallengeAuthorizer\TechChallengeAuthorizer.csproj", "{EBEB7C36-4430-486D-A53F-574A7F7E9B00}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{6B7E51AF-6248-41D6-BA39-16E7B6FDFA62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B7E51AF-6248-41D6-BA39-16E7B6FDFA62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B7E51AF-6248-41D6-BA39-16E7B6FDFA62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBEB7C36-4430-486D-A53F-574A7F7E9B00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBEB7C36-4430-486D-A53F-574A7F7E9B00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBEB7C36-4430-486D-A53F-574A7F7E9B00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBEB7C36-4430-486D-A53F-574A7F7E9B00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

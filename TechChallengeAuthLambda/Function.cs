@@ -1,3 +1,5 @@
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.Model;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Microsoft.IdentityModel.Tokens;
@@ -5,18 +7,26 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using TechChallengeAuthenticate.models;
 using TechChallengeAuthLambda.models;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
-namespace TechChallengeAuthLambda;
+namespace TechChallengeAuthenticate;
 
 public class Function
 {
-    private const string SecretKey = "ffdf0228-bbee-4ba0-bcfc-6a712021219b"; // Use a chave segura, como do Secrets Manager
-    private const string Issuer = "https://your-issuer.com"; // Atualize com o seu domínio
-    private const string Audience = "your-audience"; // Atualize com o seu público-alvo
+    private readonly string SecretKey = Environment.GetEnvironmentVariable("SECRET_KEY") ?? string.Empty;
+    private readonly string Issuer = Environment.GetEnvironmentVariable("ISSUER") ?? string.Empty;
+    private readonly string Audience = Environment.GetEnvironmentVariable("AUDIENCE") ?? string.Empty;
+
+    private readonly AmazonDynamoDBClient _dynamoDbClient;
+
+    public Function()
+    {
+        _dynamoDbClient = new AmazonDynamoDBClient();
+    }
 
     /// <summary>
     /// A simple function that takes a string and does a ToUpper
@@ -28,18 +38,38 @@ public class Function
     {
         try
         {
-            var authRequest = JsonSerializer.Deserialize<AuthRequest>(request.Body);
+            if (SecretKey == string.Empty || Issuer == string.Empty || Audience == string.Empty)
+            {
+                return new APIGatewayProxyResponse
+                {
+                    StatusCode = 500,
+                    Body = JsonSerializer.Serialize(new AuthResponse
+                    {
+                        Token = string.Empty,
+                        Message = "Internal Server Error",
+                        IsAuthenticated = false
+                    })
+                };
+            }
 
-            if (!IsValidUser(authRequest.Username, authRequest.Password))
+            var authRequest = JsonSerializer.Deserialize<AuthRequest>(request.Body);
+            var validUser = GetValidUser(authRequest.Username);
+
+            if (validUser is null)
             {
                 return new APIGatewayProxyResponse
                 {
                     StatusCode = 401,
-                    Body = JsonSerializer.Serialize(new { message = "Invalid username or password" })
+                    Body = JsonSerializer.Serialize(JsonSerializer.Serialize(new AuthResponse
+                    {
+                        Token = string.Empty,
+                        Message = "Invalid username or password.",
+                        IsAuthenticated = false
+                    }))
                 };
             }
 
-            var token = GenerateJwtToken(authRequest.Username);
+            var token = GenerateJwtToken(validUser);
 
             return new APIGatewayProxyResponse
             {
@@ -67,31 +97,57 @@ public class Function
         }
     }
 
-    private string GenerateJwtToken(string username)
+    private string GenerateJwtToken(User user)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SecretKey));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
         {
-                new Claim(ClaimTypes.Name, username),
-                new Claim(ClaimTypes.Role, "User"),
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Role, user.Group),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+        };
 
         var token = new JwtSecurityToken(
             issuer: Issuer,
             audience: Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(3),
+            expires: DateTime.UtcNow.AddHours(1),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    private bool IsValidUser(string username, string password)
+    private User? GetValidUser(string username)
     {
-        // Substitua por lógica real de autenticação (e.g., banco de dados)
-        return username == "admin" && password == "password123";
+        var queryRequest = new QueryRequest
+        {
+            TableName = "user",
+            KeyConditionExpression = "cpf = :cpf",
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            {
+                { ":cpf", new AttributeValue { S = username } }
+            }
+        };
+
+        var result = _dynamoDbClient.QueryAsync(queryRequest).Result;
+        var userItem = result.Items.FirstOrDefault();
+
+        User? user = null;
+        if (userItem != null)
+        {
+            user = new User
+            {
+                Cpf = userItem["cpf"].S,
+                Name = userItem["name"].S,
+                Email = userItem["email"].S,
+                Group = userItem["group"].S,
+                CreatedAt = DateTime.Parse(userItem["created_at"].S),
+                UpdatedAt = DateTime.Parse(userItem["updated_at"].S)
+            };
+        }
+
+        return user;
     }
 }
